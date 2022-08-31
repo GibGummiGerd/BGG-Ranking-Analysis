@@ -2,35 +2,34 @@
 source("calculation.R")
 source("const.R")
 source("files.R")
+source("ranking.R")
 library(tidyverse)
 
 
-data <- prepare_data(throne)
-
 # Ranking
-ranking <- load_csv(paste(RANKING_DATE, ".csv", sep = ""))
+ranking <- load_csv(paste(RANKING_DATE, ".csv", sep = ""), CSV_RANKING_FOLDER)
 ranking <- clean_and_save_ranking(ranking, NO_TOP_GAMES, RANKING_DATE)
 
 
-
-ratings_per_month <- calc_ratings_per_month(data)
+data <- load_csv_with_id(167355)
+data <- add_date(data)
+ratings_per_month <- calc_ratings_per_month(data, 2018)
 get_release_year_and_month(ratings_per_month, 2002)
 
 vectorID <- c(ranking$ID)
 vectorRank <- c(ranking$Rank)
 vectorYear <- c(ranking$Year)
-vv <- vectorRank * vectorYear
-sapply(vectorID, yolo)
 
-vectorYear * vectorRank
+
 mapply(flow, vectorID, vectorYear)
 
-rm(RANKING_DATE)
+
 
 flow <- function(id, year) {
   data <- load_csv_with_id(id)
-  data <- prepare_data(data)
+  data <- group_ratings_by_month(data)
   ratings_per_month <- calc_ratings_per_month(data, year)
+  save_csv(ratings_per_month, paste(id, RANKING_DATE, sep = "_"), CSV_GAMES_FOLDER)
   
 }
 

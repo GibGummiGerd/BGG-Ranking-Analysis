@@ -3,21 +3,26 @@ library(tidyverse)
 
 # Loads CSV with given BGG ID
 load_csv_with_id <- function(id) {
-  filename <- list.files(path = CSV_FOLDER, pattern = id_regex(id))[1]
+  filename <- list.files(path = CSV_INPUT_FOLDER, pattern = id_regex(id))[1]
   if (is.na(filename)) {
     print(paste("Did not find csv for id", toString(id), sep = " "))
     return (NA)
   }
-  filepath <- paste(CSV_FOLDER, filename, sep = "/")
-  return(load_csv(filepath))
+  return(load_csv(filename, CSV_INPUT_FOLDER))
 }
 
 # Loads the csv with given filepath
-load_csv <- function(filepath) {
+load_csv <- function(filename, filepath = "") {
   tryCatch(
     expr = {
-      df <- read.csv(filepath)
+      if (filepath == "") {
+        df <- read.csv(filename)
+        return(df)
+      }
+      
+      df <- read.csv(paste(filepath, filename, sep = ""))
       return(df)
+      
     },
     error = function(err) {
       print(paste("Did not find csv at path", filepath, sep = " "))
