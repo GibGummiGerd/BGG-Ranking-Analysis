@@ -184,7 +184,7 @@ calc_ratings_per_month <- function(
     #   }
     # } %>%
     mutate( .,
-            month_after_release = 12*(year - release$start_year) + (month - release$start_month) + 1 # + 1 because first month = 1
+            month_after_release = 12*(year - release$start_year) + (month - release$start_month) # add + 1 if first month should be 1
     )
     # {
     #   if (isTRUE(release$start_is_first)) {
@@ -260,7 +260,6 @@ get_release_year_and_month <- function(ratings_per_month, year_official) {
   start_is_first <- TRUE
   
   vector_no_ratings <- ratings_per_month$no_ratings
-  print(head(vector_no_ratings))
   vector_years <- ratings_per_month$year
   vector_months <- ratings_per_month$month
   
@@ -283,10 +282,16 @@ get_release_year_and_month <- function(ratings_per_month, year_official) {
   
   for (key in 1:length(vector_years)) {
     
+    print("")
+    print("number of ratings:")
+    print(vector_no_ratings[key])
+    
     if (year_reached == FALSE) {
       if (vector_years[key] >= year_official) {
+        print("year reached")
         year_reached <- TRUE
       } else {
+        print("year not reached")
         start_is_first <- FALSE
         prior_month = vector_months[key]
         prior_year = vector_years[key]
@@ -296,6 +301,7 @@ get_release_year_and_month <- function(ratings_per_month, year_official) {
     
     
     if (vector_no_ratings[key] >= minimum_ratings_per_month) {
+      print("fulfilled")
       current_months_in_a_row <- current_months_in_a_row + 1
     } else {
       current_months_in_a_row <- 0
@@ -306,17 +312,22 @@ get_release_year_and_month <- function(ratings_per_month, year_official) {
     }
     
     if (current_months_in_a_row == 1) {
+      print("new streak started")
       start_month = vector_months[key]
       start_year = vector_years[key]
       # Check if a month was skipped, as in had no ratings and is not in list
     } else if (
       # previous month is not month - 1
-      ((start_month + current_months_in_a_row - 1)%% 12 != vector_months[key]) |
+      ((start_month + current_months_in_a_row - 1)%% 12 != (vector_months[key])%% 12) |
       # month not 1, but previous month in different year
-      (vector_years[key] != 1 & vector_years[key] != vector_years[key-1]) |
+      (vector_months[key] != 1 & vector_years[key] != vector_years[key-1]) |
       # month is 1, but year is not previous year
       (vector_years[key] == 1 & vector_years[key] - 1 != vector_years[key-1])
-      ) {
+      ) 
+      {
+        print("missing month between this and the last one in the streak")
+        print(vector_months[key])
+        print(vector_years[key] != vector_years[key-1])
         current_months_in_a_row <- 0
         start_is_first <- FALSE
         prior_month = vector_months[key]
