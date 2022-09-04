@@ -12,9 +12,13 @@ ranking <- clean_and_save_ranking(ranking, NO_TOP_GAMES, RANKING_DATE)
 
 
 # nemesis 167355  2018
-data <- load_csv_with_id(12493)
+# el grande 93 2000
+
+# Twilight Imperium: Third Edition 12493 2005
+
+data <- load_csv_with_id(167791)
 data <- add_date(data)
-ratings_per_month <- calc_ratings_per_month(data, 2005)
+ratings_per_month <- calc_ratings_per_month(data, 2000)
 
 vectorID <- c(ranking$ID)
 vectorRank <- c(ranking$Rank)
@@ -33,7 +37,7 @@ flow <- function(id, year) {
   
 }
 
-ggplot(data=subset(ratings_per_month, ratings_per_month$month_after_release >= 0), mapping = aes(x = month_after_release)) +
+ggplot(data=subset(ratings_per_month, ratings_per_month$month_after_release >= 0 & ratings_per_month$cum_no_ratings >= 1000), mapping = aes(x = month_after_release)) +
   
   # ylim(5,NA) +
   
@@ -53,7 +57,9 @@ ggplot(data=subset(ratings_per_month, ratings_per_month$month_after_release >= 0
   # geom_smooth(aes(y = avg_rating_no_comment, color="cum_avg_rating_no_comment"), method = "gam", formula = y ~ s(x, bs = "cs")) +
   geom_line(aes(y = cum_avg_rating_no_comment, color="cum_avg_rating_no_comment")) +
   
-  geom_point(aes(y = avg_rating_not_owned, color="cum_avg_rating_not_owned", size=no_ratings_not_owned)) +
+  geom_line(aes(y = cum_avg_rating_prev_owned, color="cum_avg_rating_prev_owned")) +
+  
+  # geom_point(aes(y = avg_rating_not_owned, color="cum_avg_rating_not_owned", size=no_ratings_not_owned)) +
   # geom_smooth(aes(y = avg_rating_not_owned, color="cum_avg_rating_not_owned"), method = "gam", formula = y ~ s(x, bs = "cs")) +
   geom_line(aes(y = cum_avg_rating_not_owned, color="cum_avg_rating_not_owned"))
 

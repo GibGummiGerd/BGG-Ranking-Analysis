@@ -34,19 +34,19 @@ calc_ratings_per_month <- function(
       avg_rating_comment = mean(rating[textfield != ""]),
       avg_rating_no_comment = mean(rating[textfield == ""]),
     ) %>%
-    ungroup()
-  
+  ungroup() # Important to ungroup, otherwise it will be later applied
+
   # owned grouping
   temp <- data %>%
     filter(own == "True") %>%
     group_by(year, month) %>%
     summarise(
       no_ratings_owned = n(),
-    ) %>%
-    ungroup()
+    )
     
-  ratings_per_month <- merge(ratings_per_month, temp, all = TRUE)
+  ratings_per_month <- full_join(ratings_per_month, temp, by = c("year", "month"))
   
+
   # not owned grouping
   temp <- data %>%
     filter(own == "False") %>%
@@ -54,8 +54,9 @@ calc_ratings_per_month <- function(
     summarise(
       no_ratings_not_owned = n()
     )
-  ratings_per_month <- merge(ratings_per_month, temp, all = TRUE)
+  ratings_per_month <- full_join(ratings_per_month, temp)
   
+
   # prev owned grouping
   temp <- data %>%
     filter(prevowned == "True") %>%
@@ -63,8 +64,9 @@ calc_ratings_per_month <- function(
     summarise(
       no_ratings_prev_owned = n()
     )
-  ratings_per_month <- merge(ratings_per_month, temp, all = TRUE)
+  ratings_per_month <- full_join(ratings_per_month, temp)
   
+
   # comment grouping
   temp <- data %>%
     filter(textfield != "") %>%
@@ -72,8 +74,8 @@ calc_ratings_per_month <- function(
     summarise(
       no_ratings_comment = n()
     )
-  ratings_per_month <- merge(ratings_per_month, temp, all = TRUE)
-  
+  ratings_per_month <- full_join(ratings_per_month, temp)
+
   # no comment grouping
   temp <- data %>%
     filter(textfield == "") %>%
@@ -81,8 +83,9 @@ calc_ratings_per_month <- function(
     summarise(
       no_ratings_no_comment = n()
     )
-  ratings_per_month <- merge(ratings_per_month, temp, all = TRUE)
+  ratings_per_month <- full_join(ratings_per_month, temp)
   
+
   ratings_per_month <- ratings_per_month %>%
     replace_na(list(no_ratings_owned = 0,
                     no_ratings_not_owned = 0,
@@ -98,110 +101,91 @@ calc_ratings_per_month <- function(
       cum_no_ratings_no_comment = cumsum(no_ratings_no_comment)
     )
   
-  ratings_per_month <- ratings_per_month %>%
-    mutate(
-      cum_avg_rating = calc_cum_avg_rating(
-        ratings_per_month["avg_rating"],
-        ratings_per_month["no_ratings"],
-        ratings_per_month["cum_no_ratings"]
-      )[,1],
-      cum_avg_rating_owned = calc_cum_avg_rating(
-        ratings_per_month["avg_rating_owned"],
-        ratings_per_month["no_ratings_owned"],
-        ratings_per_month["cum_no_ratings_owned"]
-      )[,1],
-      cum_avg_rating_not_owned = calc_cum_avg_rating(
-        ratings_per_month["avg_rating_not_owned"],
-        ratings_per_month["no_ratings_not_owned"],
-        ratings_per_month["cum_no_ratings_not_owned"]
-      )[,1],
-      cum_avg_rating_prev_owned = calc_cum_avg_rating(
-        ratings_per_month["avg_rating_prev_owned"],
-        ratings_per_month["no_ratings_prev_owned"],
-        ratings_per_month["cum_no_ratings_prev_owned"]
-      )[,1],
-      cum_avg_rating_comment = calc_cum_avg_rating(
-        ratings_per_month["avg_rating_comment"],
-        ratings_per_month["no_ratings_comment"],
-        ratings_per_month["cum_no_ratings_comment"]
-      )[,1],
-      cum_avg_rating_no_comment = calc_cum_avg_rating(
-        ratings_per_month["avg_rating_no_comment"],
-        ratings_per_month["no_ratings_no_comment"],
-        ratings_per_month["cum_no_ratings_no_comment"]
-      )[,1]
-    )
+  vector_year = ratings_per_month$year
+  vector_month = ratings_per_month$month
+  
+  
+  cum_avg_rating = calc_cum_avg_rating(
+    ratings_per_month$avg_rating,
+    ratings_per_month$no_ratings,
+    ratings_per_month$cum_no_ratings,
+    vector_year,
+    vector_month,
+    "cum_avg_rating"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating, by = c("year", "month"))
+  
+  cum_avg_rating_owned = calc_cum_avg_rating(
+    ratings_per_month$avg_rating_owned,
+    ratings_per_month$no_ratings_owned,
+    ratings_per_month$cum_no_ratings_owned,
+    vector_year,
+    vector_month,
+    "cum_avg_rating_owned"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating_owned, by = c("year", "month"))
+  
+  cum_avg_rating_not_owned = calc_cum_avg_rating(
+    ratings_per_month$avg_rating_not_owned,
+    ratings_per_month$no_ratings_not_owned,
+    ratings_per_month$cum_no_ratings_not_owned,
+    vector_year,
+    vector_month,
+    "cum_avg_rating_not_owned"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating_not_owned, by = c("year", "month"))
+  
+  cum_avg_rating_prev_owned = calc_cum_avg_rating(
+    ratings_per_month$avg_rating_prev_owned,
+    ratings_per_month$no_ratings_prev_owned,
+    ratings_per_month$cum_no_ratings_prev_owned,
+    vector_year,
+    vector_month,
+    "cum_avg_rating_prev_owned"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating_prev_owned, by = c("year", "month"))
+  
+  cum_avg_rating_comment = calc_cum_avg_rating(
+    ratings_per_month$avg_rating_comment,
+    ratings_per_month$no_ratings_comment,
+    ratings_per_month$cum_no_ratings_comment,
+    vector_year,
+    vector_month,
+    "cum_avg_rating_comment"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating_comment, by = c("year", "month"))
+  
+  cum_avg_rating_no_comment = calc_cum_avg_rating(
+    ratings_per_month$avg_rating_no_comment,
+    ratings_per_month$no_ratings_no_comment,
+    ratings_per_month$cum_no_ratings_no_comment,
+    vector_year,
+    vector_month,
+    "cum_avg_rating_no_comment"
+  )
+  ratings_per_month <- ratings_per_month %>% left_join(cum_avg_rating_no_comment, by = c("year", "month"))
+
+
+      # cum_avg_rating_comment = calc_cum_avg_rating(
+      #   ratings_per_month["avg_rating_comment"],
+      #   ratings_per_month["no_ratings_comment"],
+      #   ratings_per_month["cum_no_ratings_comment"]
+      # )[,1],
+      # cum_avg_rating_no_comment = calc_cum_avg_rating(
+      #   ratings_per_month["avg_rating_no_comment"],
+      #   ratings_per_month["no_ratings_no_comment"],
+      #   ratings_per_month["cum_no_ratings_no_comment"]
+      # )[,1]
+    # )
   
   release <- get_release_year_and_month(ratings_per_month, year_official)
-  print("RELEASE")
   print(release)
   
-  
-  
-  # #here
-  # if (isFALSE(release$start_is_first)) {
-  #   prior_year <- release$prior_year
-  #   prior_month <- release$prior_month
-  #   # if there is a gap
-  #   if ((release$prior_month + 1)%% 12 != release$start_month) {
-  #     prior_row <- filter(
-  #       ratings_per_month,
-  #       year == prior_year,
-  #       month == prior_month
-  #       )
-  #     prior_row <- prior_row[,1]
-  #     ratings_per_month %>% add_row(prior_row)
-  #   }
-  # } else {
-  #   release_year <- release$prior_year
-  #   release_month <- release$prior_month
-  # }
-  # 
-  # if (isFALSE(release$start_is_first)) {
-  #   ratings_per_month <- ratings_per_month %>%
-  #     filter(
-  #       ratings_per_month$year > release$prior_year | 
-  #         (ratings_per_month$year == release$prior_year & ratings_per_month$month >= release$prior_month)
-  #     ) %>%
-  #     mutate(
-  #       month_after_release = 12*(year - release$prior_year) + (month - release$prior_month)
-  #     )
-  # }
-  # # here
 
   ratings_per_month <- ratings_per_month %>%
-    # {
-    #   if (isFALSE(release$start_is_first)) {
-    #     filter( .,
-    #       ratings_per_month$year > release$prior_year | 
-    #         (ratings_per_month$year == release$prior_year & ratings_per_month$month >= release$prior_month)
-    #       )
-    #   } else {
-    #     filter( .,
-    #       ratings_per_month$year > release$start_year | 
-    #         (ratings_per_month$year == release$start_year & ratings_per_month$month >= release$start_month)
-    #     )
-    #   }
-    # } %>%
     mutate( .,
             month_after_release = 12*(year - release$start_year) + (month - release$start_month) # add + 1 if first month should be 1
     )
-    # {
-    #   if (isTRUE(release$start_is_first)) {
-    #     print("if")
-    #     mutate( .,
-    #             month_after_release = 12*(year - release$start_year) + (month - release$start_month) + 1 # + 1 because first month = 1
-    #     )
-    #   } else {
-    #     print("else")
-    #     # Find
-    #     print(release$prior_year)
-    #     print(release$prior_month)
-    #     mutate( .,
-    #             month_after_release = 12*(year - release$prior_year) + (month - release$prior_month)
-    #     )
-    #   }
-    # }
 
   return(ratings_per_month)
 }
@@ -210,9 +194,12 @@ calc_ratings_per_month <- function(
 calc_cum_avg_rating <- function(
     avg_rating_column,
     no_ratings_column,
-    cum_no_ratings_column
+    cum_no_ratings_column,
+    year_column,
+    month_column,
+    name_of_column
 ) {
-  
+
   # set NA to 0 for later formulas
   # avg_rating_column[is.na(avg_rating_column)] <- 0
   # no_ratings_column[is.na(no_ratings_column)] <- 0
@@ -220,29 +207,33 @@ calc_cum_avg_rating <- function(
   
   
   # Create data frame which will be returned
-  cum_avg_rating_data_frame <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), c("cum_avg_rating"))
-  
+  cum_avg_rating_data_frame <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c(name_of_column, "year", "month"))
   last_avg_rating = 0
   last_cum_avg_rating = 0
   last_cum_no_ratings = 0
   first_entry_found = FALSE
   
-  for (key in 1:nrow(avg_rating_column)) {
-    if (first_entry_found == FALSE & is.na(avg_rating_column[key,])) {
+  for (key in 1:length(avg_rating_column)) {
+    if (first_entry_found == FALSE & is.na(avg_rating_column[key])) {
       cum_avg_rating = NA
-    } else if (is.na(avg_rating_column[key,])){
+    } else if (is.na(avg_rating_column[key])){
       cum_avg_rating = last_cum_avg_rating
     } else {
       first_entry_found <- TRUE
       
-      cum_avg_rating = (last_cum_avg_rating * last_cum_no_ratings + avg_rating_column[key,] * no_ratings_column[key,]) / cum_no_ratings_column[key,]
+      cum_avg_rating = (last_cum_avg_rating * last_cum_no_ratings + avg_rating_column[key] * no_ratings_column[key]) / cum_no_ratings_column[key]
+      if (cum_avg_rating > 10) {
+        print(cum_no_ratings_column[key])
+      }
       last_cum_avg_rating = cum_avg_rating
-      last_avg_rating = avg_rating_column[key,]
-      last_cum_no_ratings = cum_no_ratings_column[key,]
+      last_avg_rating = avg_rating_column[key]
+      last_cum_no_ratings = cum_no_ratings_column[key]
     }
-    cum_avg_rating_data_frame[key,] = c(cum_avg_rating)
+    
+    cum_avg_rating_data_frame[key,] = list(cum_avg_rating, year_column[key], month_column[key])
   }
   
+
   return (cum_avg_rating_data_frame)
 }
 
