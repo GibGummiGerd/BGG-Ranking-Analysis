@@ -4,4 +4,5 @@ source("ranking.R")
 source("const.R")
 
 library(tidyverse)
-
+library(reactable)
+library(reactablefmtr)

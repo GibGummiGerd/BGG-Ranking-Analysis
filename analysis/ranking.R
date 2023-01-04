@@ -41,7 +41,7 @@ save_ranking <- function(ranking, no_of_games, min_no_of_ratings, ranking_date, 
 }
 
 
-create_ranking_file_name <- function(no_of_games = 0, min_no_of_ratings = 0, ranking_date, folder, add_csv_ending = TRUE) {
+create_ranking_file_name <- function(no_of_games = 0, min_no_of_ratings = 0, ranking_date, folder, add_csv_ending = FALSE) {
   print(ranking_date)
   print(min_no_of_ratings)
   filename <- paste(
