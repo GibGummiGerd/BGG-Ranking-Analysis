@@ -5,8 +5,7 @@ source("files.R")
 
 
 #
-add_date <- function(data, ranking_year, ranking_month) {
-
+add_date <- function(data, ranking_year = RANKING_YEAR, ranking_month = RANKING_MONTH) {
   # Add month and year after release
   data$month <- as.numeric(format(as.Date(data$rating_tstamp), format = "%m"))
   data$year <- as.numeric(format(as.Date(data$rating_tstamp), format = "%Y"))
@@ -190,7 +189,6 @@ calc_cum_avg_rating <- function(avg_rating_column,
                                 year_column,
                                 month_column,
                                 name_of_column) {
-
   # Create data frame which will be returned
   cum_avg_rating_data_frame <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c(name_of_column, "year", "month"))
   last_avg_rating <- 0
@@ -328,6 +326,8 @@ create_and_save_monthly_data <- function(game_rank, game_id, game_name, release_
   #   )
   #
   # last_month_stat <- ratings_per_month[id_of_last_month, ] %>%
+  data <- load_csv_with_id(174430, CSV_INPUT_FOLDER)
+  data <- add_date(data, 2023, 1)
 
   return(ratings_per_month)
 }
@@ -357,9 +357,22 @@ sum_up_last_months <- function(all_last_month_stats) {
   return(summed_up)
 }
 
-#
+# searches for cleaned ranking file
+# creates it, if it doesn't exist
+# goes through list of games and searches if list with monthly stats of game is available
+# if not, creates them
+# gets last month of every game
+# collects them and saves them together
 collect_last_months <- function(no_top_games = NUMBER_TOP_GAMES, min_no_ratings = MINIMUM_NUMBER_RATINGS) {
-  ranking_file_path <- create_ranking_file_name(no_top_games, min_no_ratings, RANKING_DATE, CSV_RANKING_FOLDER)
+  no_top_games <- NUMBER_TOP_GAMES
+  min_no_ratings <- MINIMUM_NUMBER_RATINGS
+  ranking_file_path <- create_ranking_file_name(
+    folder = CSV_RANKING_FOLDER,
+    ranking_date = RANKING_DATE,
+    top_games = no_top_games,
+    min_no_of_ratings = min_no_ratings,
+    add_csv_ending = FALSE
+  )
   if (file.exists(ranking_file_path)) {
     ranking <- load_csv(ranking_file_path)
   } else {
@@ -374,10 +387,9 @@ collect_last_months <- function(no_top_games = NUMBER_TOP_GAMES, min_no_ratings 
   vector_name <- c(ranking$Name)
 
   for (i in 1:length(vector_rank)) {
-    print(paste("Current rank:", vector_rank[i]))
+    print(paste("Current rank:", vector_rank[i], "i:", i, "from:", length(vector_rank)))
 
     monthly_stats <- load_csv_with_id(vector_id[i], CSV_GAMES_MONTHLY_FOLDER)
-
     if (!is.list(monthly_stats)) {
       monthly_stats <- create_and_save_monthly_data(
         vector_rank[i],
@@ -399,7 +411,6 @@ collect_last_months <- function(no_top_games = NUMBER_TOP_GAMES, min_no_ratings 
     )
 
     # ID of original data frame
-    print(colnames(last_month))
     if ("X" %in% colnames(last_month)) {
       last_month <- subset(last_month, select = -c(X))
     }
@@ -429,9 +440,11 @@ collect_last_months <- function(no_top_games = NUMBER_TOP_GAMES, min_no_ratings 
     no_ratings_no_comment
   ))
 
+  naming <- create_name_no_ratings_top_games(min_no_of_ratings = min_no_ratings, top_games = no_top_games)
 
   save_csv(all_last_month_stats,
-    filename = paste(RANKING_DATE, "last_months_top", no_top_games, sep = "_"),
+    
+    filename = paste(RANKING_DATE, naming, sep = "_"),
     filepath = CSV_LAST_MONTHS_FOLDER,
     add_csv_ending = TRUE
   )

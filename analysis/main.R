@@ -1,20 +1,22 @@
 # PACKAGES
 source("setup.R")
 
-
-
 # Only needs to be run once for every RANKING_DATE - NUMBER_OF_RATINGS combo
-collect_last_months()
-all_last_month_stats <- collect_last_months(1000, 0)
+all_last_month_stats <- collect_last_months(0, 2000)
 
 
 # Load file with the last month stat of each game
-all_last_month_stats <- load_csv(paste(RANKING_DATE, "last_months_top", 0, sep = "_"), CSV_LAST_MONTHS_FOLDER, add_csv_ending = TRUE)
+all_last_month_stats <- load_csv(paste(RANKING_DATE, 
+                                       "last_months", 
+                                       create_name_no_ratings_top_games(0, 2000), 
+                                       sep = "_"), 
+                                 CSV_LAST_MONTHS_FOLDER, 
+                                 add_csv_ending = TRUE)
 
 # If you need the summed up statistics
 summed_up_last_months <- sum_up_last_months(all_last_month_stats)
 
-# Differences between average rating and conidtional ratings
+# Differences between average rating and conditional ratings
 all_last_month_stats <- all_last_month_stats %>%
   mutate(
     diff_avg_owned = cum_avg_rating_owned - cum_avg_rating,
@@ -72,7 +74,7 @@ reactable(
   ownage_influence,
   theme = fivethirtyeight(),
   defaultPageSize = 25,
-  
+
   ### add column group header
   columnGroups = list(
     colGroup(name = "Number of Ratings", columns = c("cum_no_ratings", "cum_no_ratings_owned", "cum_no_ratings_not_owned", "cum_no_ratings_prev_owned")),
@@ -83,11 +85,11 @@ reactable(
   columns = list(
     name = colDef(name = "Name", maxWidth = 120),
     rank = colDef(
-      name = "BGG Rank", 
-      maxWidth = 60, 
+      name = "BGG Rank",
+      maxWidth = 60,
       align = "center",
-      style = list(borderRight = "1px dashed rgba(0, 0, 0, 0.3)")),
-    
+      style = list(borderRight = "1px dashed rgba(0, 0, 0, 0.3)")
+    ),
     cum_no_ratings = colDef(name = "Overall", maxWidth = 60, align = "center"),
     cum_no_ratings_owned = colDef(name = "Owned", maxWidth = 60, align = "center"),
     cum_no_ratings_not_owned = colDef(name = "Not owned", maxWidth = 60, align = "center"),
