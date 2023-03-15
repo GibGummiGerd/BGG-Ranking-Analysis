@@ -48,14 +48,15 @@ save_ranking <- function(ranking, no_of_games, min_no_of_ratings, ranking_date, 
 # contains top games, a minimum number of ratings or both
 create_ranking_file_name <- function(folder = CSV_RANKING_FOLDER,
                                      ranking_date = RANKING_DATE,
-                                     min_no_of_ratings = 0,
-                                     top_games = 0,
+                                     min_no_of_ratings = MINIMUM_NUMBER_RATINGS,
+                                     top_games = NUMBER_TOP_GAMES,
                                      add_csv_ending = FALSE) {
   # Name which should be added besides the filepath and date
   naming <- create_name_no_ratings_top_games(
     top_games = top_games,
-    min_no_of_ratings = min_no_of_ratings)
-  
+    min_no_of_ratings = min_no_of_ratings
+  )
+
   filename <- paste(
     folder,
     paste(ranking_date, naming, sep = "_"),
@@ -69,8 +70,8 @@ create_ranking_file_name <- function(folder = CSV_RANKING_FOLDER,
 }
 
 # Creates name dependent if number of ratings and top games
-create_name_no_ratings_top_games <- function(top_games = 0, 
-                                             min_no_of_ratings = 0) {
+create_name_no_ratings_top_games <- function(top_games = NUMBER_TOP_GAMES,
+                                             min_no_of_ratings = MINIMUM_NUMBER_RATINGS) {
   # Name which should be added besides the filepath and date
   naming <- ""
   if (min_no_of_ratings == 0 && top_games == 0) {
@@ -83,5 +84,5 @@ create_name_no_ratings_top_games <- function(top_games = 0,
   } else {
     naming <- paste("top_", top_games, "min_ratings", min_no_of_ratings, sep = "_")
   }
-  return (naming)
+  return(naming)
 }
