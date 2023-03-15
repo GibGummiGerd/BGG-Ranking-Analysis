@@ -11,3 +11,4 @@ CSV_INPUT_FOLDER <- paste("..", "..", "BGG-CSV", "games", RANKING_DATE, "", sep 
 CSV_RANKING_FOLDER <- paste("..", "csv", "ranking", "", sep = "/")
 CSV_GAMES_MONTHLY_FOLDER <- paste("..", "csv", "games", RANKING_DATE, "", sep = "/")
 CSV_LAST_MONTHS_FOLDER <- paste("..", "csv", "games", "last_months", "", sep = "/")
+FOLDER_DATE_AVAILABILITY <- paste("..", "csv", "date_availability", "", sep = "/")
