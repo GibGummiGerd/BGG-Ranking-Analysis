@@ -2,7 +2,7 @@ source("const.R")
 library(tidyverse)
 
 # Loads CSV with given BGG ID
-load_csv_with_id <- function(id, csv_path) {
+load_csv_with_id <- function(id, csv_path = CSV_GAMES_MONTHLY_FOLDER) {
   filename <- list.files(path = csv_path, pattern = id_regex(id))[1]
   if (is.na(filename)) {
     print(paste("Did not find csv for id", toString(id), "in folder ", csv_path, sep = " "))
